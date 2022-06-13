@@ -118,9 +118,13 @@ staticClients:
 #    name: 'Static Client for Device Flow'
 #    public: true
 connectors:
-- type: mockCallback
-  id: mock
-  name: Example
+- type: ssh
+  id: ssh
+  name: SSH
+  config:
+    host: "localhost"
+    username: "abcd"
+    password: "1234"
 # - type: google
 #   id: google
 #   name: Google
