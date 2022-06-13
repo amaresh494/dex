@@ -122,9 +122,7 @@ connectors:
   id: ssh
   name: SSH
   config:
-    host: "localhost"
-    username: "abcd"
-    password: "1234"
+      hostIP: "10.75.32.35:22"
 # - type: google
 #   id: google
 #   name: Google

@@ -3,29 +3,24 @@ package ssh
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/dexidp/dex/connector"
 	"github.com/dexidp/dex/pkg/log"
+	"golang.org/x/crypto/ssh"
 )
 
 // Config holds configuration options for SSH logins.
 type Config struct {
 	// The host of the SSH server.
 	HostIP string `json:"hostIP"`
-
-	Username string `json:"username"`
-
-	Password string `json:"password"`
 }
 
 // Open returns an authentication strategy which prompts for a predefined username and password.
 func (c *Config) Open(id string, logger log.Logger) (connector.Connector, error) {
-	if c.Username == "" {
-		return nil, errors.New("no username supplied")
+	if c.HostIP == "" {
+		return nil, errors.New("no host ip supplied")
 	}
-	if c.Password == "" {
-		return nil, errors.New("no password supplied")
-	}
-	return &sshConnector{c.Username, c.Password, logger}, nil
+	return &sshConnector{c.HostIP, logger}, nil
 }
 
 var (
@@ -33,9 +28,8 @@ var (
 )
 
 type sshConnector struct {
-	username string
-	password string
-	logger   log.Logger
+	host   string
+	logger log.Logger
 }
 
 func (sc sshConnector) Close() error { return nil }
@@ -45,14 +39,21 @@ func (sc sshConnector) Prompt() string {
 }
 
 func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, password string) (identity connector.Identity, validPassword bool, err error) {
-	if username == sc.username && password == sc.password {
-		return connector.Identity{
-			UserID:        "9134",
-			Username:      "Amaresh",
-			Email:         "amarch@altair.com",
-			EmailVerified: true,
-			ConnectorData: []byte(`{"test": "true"}`),
-		}, true, nil
+	sshConfig := &ssh.ClientConfig{
+		User: username,
+		Auth: []ssh.AuthMethod{ssh.Password(password)},
 	}
-	return identity, false, nil
+	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+
+	client, err := ssh.Dial("tcp", sc.host, sshConfig)
+	if err != nil {
+		fmt.Print(err)
+		return connector.Identity{}, false, err
+	}
+
+	return connector.Identity{
+		UserID:        client.User(),
+		Username:      username,
+		ConnectorData: []byte(`{"test": "true"}`),
+	}, true, nil
 }
