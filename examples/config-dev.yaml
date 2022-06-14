@@ -11,9 +11,9 @@ issuer: http://127.0.0.1:5556/dex
 #
 # See the documentation (https://dexidp.io/docs/storage/) for further information.
 storage:
-  type: sqlite3
-  config:
-    file: examples/dex.db
+    type: sqlite3
+    config:
+        file: examples/dex.db
 
   # type: mysql
   # config:
@@ -47,7 +47,7 @@ storage:
 
 # Configuration for the HTTP endpoints.
 web:
-  http: 0.0.0.0:5556
+    http: 0.0.0.0:5556
   # Uncomment for HTTPS options.
   # https: 127.0.0.1:5554
   # tlsCert: /etc/dex/tls.crt
@@ -62,7 +62,7 @@ web:
 
 # Configuration for telemetry
 telemetry:
-  http: 0.0.0.0:5558
+    http: 0.0.0.0:5558
   # enableProfiling: true
 
 # Uncomment this block to enable the gRPC API. This values MUST be different
@@ -90,39 +90,39 @@ telemetry:
 #   format: "text" # can also be "json"
 
 # Default values shown below
-# oauth2:
+oauth2:
     # use ["code", "token", "id_token"] to enable implicit flow for web-only clients
-#   responseTypes: [ "code" ] # also allowed are "token" and "id_token"
+    # responseTypes: [ "token" ] # also allowed are "token" and "id_token"
     # By default, Dex will ask for approval to share data with application
     # (approval for sharing data from connected IdP to Dex is separate process on IdP)
-#   skipApprovalScreen: false
+    skipApprovalScreen: true
     # If only one authentication method is enabled, the default behavior is to
     # go directly to it. For connected IdPs, this redirects the browser away
     # from application to upstream provider such as the Google login page
-#   alwaysShowLoginScreen: false
+    # alwaysShowLoginScreen: false
     # Uncomment the passwordConnector to use a specific connector for password grants
-#   passwordConnector: local
+    # passwordConnector: ssh
 
 # Instead of reading from an external storage, use this list of clients.
 #
 # If this option isn't chosen clients may be added through the gRPC API.
 staticClients:
-- id: example-app
-  redirectURIs:
-  - 'http://127.0.0.1:5555/callback'
-  name: 'Example App'
-  secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+    -   id: example-app
+        redirectURIs:
+        -   'http://127.0.0.1:5555/callback'
+        name: 'Example App'
+        secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 #  - id: example-device-client
 #    redirectURIs:
 #      - /device/callback
 #    name: 'Static Client for Device Flow'
 #    public: true
 connectors:
-- type: ssh
-  id: ssh
-  name: SSH
-  config:
-      hostIP: "10.75.32.35:22"
+    -   type: ssh
+        id: ssh
+        name: SSH
+        config:
+            hostIP: "10.75.32.35:22"
 # - type: google
 #   id: google
 #   name: Google
@@ -134,7 +134,6 @@ connectors:
 #     redirectURI: http://127.0.0.1:5556/dex/callback
 #     hostedDomains:
 #     - $GOOGLE_HOSTED_DOMAIN
-
 # Let dex keep a list of passwords which can be used to login to dex.
 #enablePasswordDB: true
 
