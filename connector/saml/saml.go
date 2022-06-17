@@ -84,9 +84,10 @@ type Config struct {
 	InsecureSkipSignatureValidation bool `json:"insecureSkipSignatureValidation"`
 
 	// Assertion attribute names to lookup various claims with.
-	UsernameAttr string `json:"usernameAttr"`
-	EmailAttr    string `json:"emailAttr"`
-	GroupsAttr   string `json:"groupsAttr"`
+	UsernameAttr          string `json:"usernameAttr"`
+	EmailAttr             string `json:"emailAttr"`
+	PreferredUsernameAttr string `json:"preferredUsernameAttr"`
+	GroupsAttr            string `json:"groupsAttr"`
 	// If GroupsDelim is supplied the connector assumes groups are returned as a
 	// single string instead of multiple attribute values. This delimiter will be
 	// used split the groups string.
@@ -148,18 +149,19 @@ func (c *Config) openConnector(logger log.Logger) (*provider, error) {
 	}
 
 	p := &provider{
-		entityIssuer:  c.EntityIssuer,
-		ssoIssuer:     c.SSOIssuer,
-		ssoURL:        c.SSOURL,
-		now:           time.Now,
-		usernameAttr:  c.UsernameAttr,
-		emailAttr:     c.EmailAttr,
-		groupsAttr:    c.GroupsAttr,
-		groupsDelim:   c.GroupsDelim,
-		allowedGroups: c.AllowedGroups,
-		filterGroups:  c.FilterGroups,
-		redirectURI:   c.RedirectURI,
-		logger:        logger,
+		entityIssuer:          c.EntityIssuer,
+		ssoIssuer:             c.SSOIssuer,
+		ssoURL:                c.SSOURL,
+		now:                   time.Now,
+		usernameAttr:          c.UsernameAttr,
+		emailAttr:             c.EmailAttr,
+		preferredUsernameAttr: c.PreferredUsernameAttr,
+		groupsAttr:            c.GroupsAttr,
+		groupsDelim:           c.GroupsDelim,
+		allowedGroups:         c.AllowedGroups,
+		filterGroups:          c.FilterGroups,
+		redirectURI:           c.RedirectURI,
+		logger:                logger,
 
 		nameIDPolicyFormat: c.NameIDPolicyFormat,
 	}
@@ -241,12 +243,13 @@ type provider struct {
 	validator *dsig.ValidationContext
 
 	// Attribute mappings
-	usernameAttr  string
-	emailAttr     string
-	groupsAttr    string
-	groupsDelim   string
-	allowedGroups []string
-	filterGroups  bool
+	usernameAttr          string
+	emailAttr             string
+	preferredUsernameAttr string
+	groupsAttr            string
+	groupsDelim           string
+	allowedGroups         []string
+	filterGroups          bool
 
 	redirectURI string
 
@@ -402,6 +405,11 @@ func (p *provider) HandlePOST(s connector.Scopes, samlResponse, inResponseTo str
 	// Grab the username.
 	if ident.Username, _ = attributes.get(p.usernameAttr); ident.Username == "" {
 		return ident, fmt.Errorf("no attribute with name %q: %s", p.usernameAttr, attributes.names())
+	}
+
+	// Grab the preferred username or set default to email
+	if ident.PreferredUsername, _ = attributes.get(p.preferredUsernameAttr); ident.PreferredUsername == "" {
+		ident.PreferredUsername, _ = attributes.get(p.emailAttr)
 	}
 
 	if len(p.allowedGroups) == 0 && (!s.Groups || p.groupsAttr == "") {

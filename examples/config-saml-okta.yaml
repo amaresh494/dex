@@ -127,6 +127,7 @@ connectors:
           redirectURI: http://127.0.0.1:5556/dex/callback
           usernameAttr: name
           emailAttr: email
+          preferredUsernameAttr: email
 # - type: google
 #   id: google
 #   name: Google
