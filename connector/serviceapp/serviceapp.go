@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dexidp/dex/connector"
 	"github.com/dexidp/dex/pkg/log"
-	"github.com/dgrijalva/jwt-go/v4"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
@@ -13,20 +12,6 @@ import (
 	"strings"
 	"time"
 )
-
-type Claims struct {
-	jwt.StandardClaims
-}
-
-func (sac *serviceAppConnector) GetAccessTokenClaims(token string) (claims jwt.MapClaims, err error) {
-	tkn, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
-		return nil, nil
-	})
-	if tkn == nil {
-		return claims, err
-	}
-	return tkn.Claims.(jwt.MapClaims), nil
-}
 
 // serviceAppConnector is a connector that requires no user interaction to login.
 type serviceAppConnector struct {
@@ -62,14 +47,14 @@ func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Reque
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
-	req, err := http.NewRequest(http.MethodPost, sac.config.TokenUrl, strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(http.MethodPost, sac.config.AuthUrl, strings.NewReader(data.Encode()))
 	if err != nil {
 		return identity, err
 	}
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("cache-control", "no-cache")
 	req.Header.Set("content-type", "application/x-www-form-urlencoded")
-	req.Header.Set("authorization", sac.config.TokenAuthHeader)
+	req.Header.Set("authorization", sac.config.AuthHeader)
 
 	response, err := client.Do(req)
 	if err != nil {
@@ -90,14 +75,9 @@ func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Reque
 			return identity, err
 		}
 
-		claims, authErr := sac.GetAccessTokenClaims(payload.AccessToken)
-		if authErr != nil {
-			sac.Logger.Error("JWT Validation Error:-", authErr)
-		}
-
 		return connector.Identity{
-			UserID:   fmt.Sprintf("%v", claims[sac.config.UserIdKey]),
-			Username: fmt.Sprintf("%v", claims[sac.config.UserIdKey]),
+			UserID: sac.config.AuthHeader,
+			//Username: payload.AccessToken,
 		}, nil
 	} else {
 		return identity, errors.New(bodyString)
@@ -109,14 +89,12 @@ func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Reque
 type Config struct {
 	// Auth Provider
 	Provider string `json:"provider"`
-	// The Tken URL.
-	TokenUrl string `json:"tokenUrl"`
+	// The Authorization URL.
+	AuthUrl string `json:"authUrl"`
 	// Authorization Header
-	TokenAuthHeader string `json:"tokenAuthHeader"`
+	AuthHeader string `json:"authHeader"`
 
 	Scope string `json:"scope"`
-
-	UserIdKey string `json:"userIdKey"`
 }
 
 // Open returns an authentication strategy which requires no user interaction.
