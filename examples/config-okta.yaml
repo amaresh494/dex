@@ -124,9 +124,12 @@ connectors:
   config:
       issuer: "https://dev-83299542.okta.com/oauth2/default"
       clientID: "0oa5d7nqhnxFxcjz05d7"
-      clientSecret: "JqBKQIPgZUe5PZYRx_Vz5yOFybf3wXLhlV1PSusM"
+      clientSecret: "ZeSl7hH4aoxMkODl2u1X8-YXHRqGvdw3ruXux2Z1"
       redirectURI: "http://127.0.0.1:5556/dex/callback"
       insecureSkipEmailVerified: true
+      overrideClaimMapping: true
+      claimMapping:
+          preferred_username: "email"
 # - type: google
 #   id: google
 #   name: Google
