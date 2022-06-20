@@ -124,9 +124,9 @@ connectors:
   config:
       provider: "okta"
       authUrl: "https://dev-83299542.okta.com/oauth2/default/v1/token"
-      authHeader: "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6SnFCS1FJUGdaVWU1UFpZUnhfVno1eU9GeWJmM3dYTGhsVjFQU3VzTQ=="
+      authHeader: "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ=="
       scope: "service_app"
-# 0oa5d7nqhnxFxcjz05d7:ZeSl7hH4aoxMkODl2u1X8-YXHRqGvdw3ruXux2Z1 = MG9hNWQ3bnFobnhGeGNqejA1ZDc6SnFCS1FJUGdaVWU1UFpZUnhfVno1eU9GeWJmM3dYTGhsVjFQU3VzTQ==
+# 0oa5d7nqhnxFxcjz05d7:ZeSl7hH4aoxMkODl2u1X8-YXHRqGvdw3ruXux2Z1 = MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ==
 # - type: google
 #   id: google
 #   name: Google

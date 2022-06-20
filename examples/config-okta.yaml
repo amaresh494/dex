@@ -130,6 +130,15 @@ connectors:
       overrideClaimMapping: true
       claimMapping:
           preferred_username: "email"
+
+- type: serviceApp
+  id: oktaService
+  name: Okta service auth
+  config:
+      provider: "okta"
+      authUrl: "https://dev-83299542.okta.com/oauth2/default/v1/token"
+      authHeader: "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ=="
+      scope: "service_app"
 # - type: google
 #   id: google
 #   name: Google
