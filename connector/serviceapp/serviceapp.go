@@ -38,8 +38,7 @@ func (sac *serviceAppConnector) LoginURL(s connector.Scopes, callbackURL, state 
 	return u.String(), nil
 }
 
-// HandleCallback parses the request and returns the user's identity
-func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Request) (identity connector.Identity, err error) {
+func (sac *serviceAppConnector) getOktaIdentity(r *http.Request) (identity connector.Identity, err error) {
 	data := url.Values{}
 	data.Set("grant_type", "client_credentials")
 	data.Set("scope", sac.config.Scope)
@@ -54,7 +53,7 @@ func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Reque
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("cache-control", "no-cache")
 	req.Header.Set("content-type", "application/x-www-form-urlencoded")
-	req.Header.Set("authorization", sac.config.AuthHeader)
+	req.Header.Set("authorization", r.Header.Get("authorization"))
 
 	response, err := client.Do(req)
 	if err != nil {
@@ -77,20 +76,44 @@ func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Reque
 
 		return connector.Identity{
 			UserID: sac.config.AuthHeader,
-			//Username: payload.AccessToken,
 		}, nil
 	} else {
 		return identity, errors.New(bodyString)
 	}
+}
 
+func (sac *serviceAppConnector) getLocalIdentity(r *http.Request) (identity connector.Identity, err error) {
+	reqAuthHeader := r.Header.Get("authorization")
+	if reqAuthHeader == sac.config.AuthHeader {
+		return connector.Identity{
+			UserID: reqAuthHeader,
+		}, nil
+	} else {
+		return identity, errors.New("Failed to authenticate!")
+	}
+}
+
+// HandleCallback parses the request and returns the user's identity
+func (sac *serviceAppConnector) HandleCallback(s connector.Scopes, r *http.Request) (identity connector.Identity, err error) {
+
+	switch sac.config.Provider {
+	case "okta":
+		return sac.getOktaIdentity(r)
+
+	case "local":
+		return sac.getLocalIdentity(r)
+
+	default:
+		return identity, errors.New("Invalid 'provider' to Service app connector!")
+	}
 }
 
 // Config holds configuration options for Service App logins.
 type Config struct {
 	// Auth Provider
 	Provider string `json:"provider"`
-	// The Authorization URL.
-	AuthUrl string `json:"authUrl"`
+	// The Authorization Token URL.
+	AuthUrl string `json:"tokenUrl"`
 	// Authorization Header
 	AuthHeader string `json:"authHeader"`
 

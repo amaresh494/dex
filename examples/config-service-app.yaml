@@ -122,22 +122,12 @@ connectors:
   id: okta
   name: Okta
   config:
-      provider: "okta"
-      authUrl: "https://dev-83299542.okta.com/oauth2/default/v1/token"
+      provider: "local"
       authHeader: "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ=="
-      scope: "service_app"
-# 0oa5d7nqhnxFxcjz05d7:ZeSl7hH4aoxMkODl2u1X8-YXHRqGvdw3ruXux2Z1 = MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ==
-# - type: google
-#   id: google
-#   name: Google
-#   config:
-#     issuer: https://accounts.google.com
-#     # Connector config values starting with a "$" will read from the environment.
-#     clientID: $GOOGLE_CLIENT_ID
-#     clientSecret: $GOOGLE_CLIENT_SECRET
-#     redirectURI: http://127.0.0.1:5556/dex/callback
-#     hostedDomains:
-#     - $GOOGLE_HOSTED_DOMAIN
+#      provider: "okta"
+#      tokenUrl: "https://dev-83299542.okta.com/oauth2/default/v1/token"
+#      authHeader: "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ=="
+#      scope: "service_app"
 
 # Let dex keep a list of passwords which can be used to login to dex.
 #enablePasswordDB: true
