@@ -112,11 +112,14 @@ staticClients:
   - 'http://127.0.0.1:5555/callback'
   name: 'Example App'
   secret: ZXhhbXBsZS1hcHAtc2VjcmV0
-#  - id: example-device-client
-#    redirectURIs:
-#      - /device/callback
-#    name: 'Static Client for Device Flow'
-#    public: true
+  # Base64 (id:secret): ZXhhbXBsZS1hcHA6WlhoaGJYQnNaUzFoY0hBdGMyVmpjbVYw
+
+- id: service-app
+  name: 'Service app'
+  secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+  # Base64 (id:secret): c2VydmljZS1hcHA6WlhoaGJYQnNaUzFoY0hBdGMyVmpjbVYw
+
+
 connectors:
 - type: oidc
   id: okta

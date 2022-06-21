@@ -98,3 +98,10 @@ type RefreshConnector interface {
 	// changes since the token was last refreshed.
 	Refresh(ctx context.Context, s Scopes, identity Identity) (Identity, error)
 }
+
+// ClientCredentialsConnector is an interface implemented by connectors which use an OAuth Client Credentials
+// Flow to return access token.
+type ClientCredentialsConnector interface {
+	// HandleClientCredentials handles the client credentials flow
+	HandleClientCredentials(r *http.Request) (identity Identity, err error)
+}

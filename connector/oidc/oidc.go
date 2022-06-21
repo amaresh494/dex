@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -390,4 +391,57 @@ func (c *oidcConnector) createIdentity(ctx context.Context, identity connector.I
 	}
 
 	return identity, nil
+}
+
+type ClientCredentialsResponse struct {
+	TokenType   string `json:"token_type"`
+	AccessToken string `json:"access_token"`
+	Scope       string `json:"scope"`
+	ExpiresIn   int    `json:"expires_in"`
+}
+
+func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
+	data := url.Values{}
+	data.Set("grant_type", "client_credentials")
+	data.Set("scope", "service_app")
+
+	endpoint := c.provider.Endpoint()
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	req, err := http.NewRequest(http.MethodPost, endpoint.TokenURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return identity, err
+	}
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("cache-control", "no-cache")
+	req.Header.Set("content-type", "application/x-www-form-urlencoded")
+	req.Header.Set("authorization", "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ==")
+
+	response, err := client.Do(req)
+	if err != nil {
+		return identity, err
+	}
+	defer response.Body.Close()
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return identity, err
+	}
+	bodyString := string(bodyBytes)
+	c.logger.Info(bodyString)
+
+	if response.StatusCode == http.StatusOK {
+		payload := ClientCredentialsResponse{}
+		err = json.Unmarshal(bodyBytes, &payload)
+		if err != nil {
+			return identity, err
+		}
+
+		identity := connector.Identity{
+			UserID: c.oauth2Config.ClientID,
+		}
+		return identity, nil
+	} else {
+		return identity, errors.New(bodyString)
+	}
 }
