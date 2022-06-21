@@ -871,7 +871,8 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	fmt.Fprintf(w, accessToken)
+	resp := s.toAccessTokenResponse("", accessToken, "", expiry)
+	s.writeAccessToken(w, resp)
 }
 
 func (s *Server) calculateCodeChallenge(codeVerifier, codeChallengeMethod string) (string, error) {
@@ -1354,7 +1355,7 @@ type accessTokenResponse struct {
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token,omitempty"`
-	IDToken      string `json:"id_token"`
+	IDToken      string `json:"id_token,omitempty"`
 }
 
 func (s *Server) toAccessTokenResponse(idToken, accessToken, refreshToken string, expiry time.Time) *accessTokenResponse {

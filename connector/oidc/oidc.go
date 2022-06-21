@@ -396,7 +396,7 @@ type ClientCredentialsResponse struct {
 	TokenType   string `json:"token_type"`
 	AccessToken string `json:"access_token"`
 	Scope       string `json:"scope"`
-	ExpiresIn   int    `json:"expires_in"`
+	ExpiresIn   int64  `json:"expires_in"`
 }
 
 func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
