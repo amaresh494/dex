@@ -3,20 +3,19 @@ package oidc
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/dexidp/dex/connector"
+	"github.com/dexidp/dex/pkg/log"
+	"golang.org/x/oauth2"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/coreos/go-oidc/v3/oidc"
-	"golang.org/x/oauth2"
-
-	"github.com/dexidp/dex/connector"
-	"github.com/dexidp/dex/pkg/log"
 )
 
 // Config holds configuration options for OpenID Connect logins.
@@ -405,6 +404,9 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 	data.Set("grant_type", "client_credentials")
 	data.Set("scope", "service_app")
 
+	authorizationHeader := "Basic " +
+		base64.StdEncoding.EncodeToString([]byte(c.oauth2Config.ClientID+":"+c.oauth2Config.ClientSecret))
+
 	endpoint := c.provider.Endpoint()
 	client := &http.Client{
 		Timeout: time.Second * 10,
@@ -416,7 +418,7 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("cache-control", "no-cache")
 	req.Header.Set("content-type", "application/x-www-form-urlencoded")
-	req.Header.Set("authorization", "Basic MG9hNWQ3bnFobnhGeGNqejA1ZDc6WmVTbDdoSDRhb3hNa09EbDJ1MVg4LVlYSFJxR3ZkdzNydVh1eDJaMQ==")
+	req.Header.Set("authorization", authorizationHeader)
 
 	response, err := client.Do(req)
 	if err != nil {
@@ -428,7 +430,6 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 		return identity, err
 	}
 	bodyString := string(bodyBytes)
-	c.logger.Info(bodyString)
 
 	if response.StatusCode == http.StatusOK {
 		payload := ClientCredentialsResponse{}
