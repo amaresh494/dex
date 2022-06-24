@@ -124,7 +124,7 @@ connectors:
       config:
           ssoURL: https://dev-83299542.okta.com/app/dev-83299542_samlapp_1/exk5ebfbh8C40aj105d7/sso/saml
           ca: /Users/amaresh/Downloads/okta.cert
-          redirectURI: http://127.0.0.1:5556/dex/callback
+          redirectURI: http://127.0.0.1:5555/callback
           usernameAttr: name
           emailAttr: email
           preferredUsernameAttr: email

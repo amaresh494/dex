@@ -112,6 +112,11 @@ staticClients:
         -   'http://127.0.0.1:5555/callback'
         name: 'Example App'
         secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+
+    -   id: service-app
+        name: 'Service app'
+        secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+        # Base64 (id:secret): c2VydmljZS1hcHA6WlhoaGJYQnNaUzFoY0hBdGMyVmpjbVYw
 #  - id: example-device-client
 #    redirectURIs:
 #      - /device/callback

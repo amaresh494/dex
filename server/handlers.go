@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/oauth2"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -183,6 +184,88 @@ func (s *Server) handleAuthorization(w http.ResponseWriter, r *http.Request) {
 	if err := s.templates.login(r, w, connectorInfos); err != nil {
 		s.logger.Errorf("Server template error: %v", err)
 	}
+}
+
+func (s *Server) oauth2Config(clientID string, clientSecret string, provider *oidc.Provider, redirectURI string) *oauth2.Config {
+	return &oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Endpoint:     provider.Endpoint(),
+		Scopes:       nil,
+		RedirectURL:  redirectURI,
+	}
+}
+
+func (s *Server) handleAuthorizationCallback(w http.ResponseWriter, r *http.Request) {
+	var (
+		err   error
+		token *oauth2.Token
+	)
+
+	ctx := oidc.ClientContext(r.Context(), http.DefaultClient)
+	provider, err := oidc.NewProvider(ctx, s.issuerURL.String())
+	if err != nil {
+		fmt.Errorf("failed to query provider %q: %v", s.issuerURL.String(), err)
+	}
+
+	clientID, clientSecret, ok := r.BasicAuth()
+	s.logger.Infof("Callback URL => Client ID: %s, Client Secret: %s, Referer: %s\n",
+		clientID, clientSecret, r.Referer())
+	oauth2Config := s.oauth2Config(clientID, clientSecret, provider, r.Referer())
+
+	switch r.Method {
+	case http.MethodGet:
+		// Authorization redirect callback from OAuth2 auth flow.
+		if errMsg := r.FormValue("error"); errMsg != "" {
+			http.Error(w, errMsg+": "+r.FormValue("error_description"), http.StatusBadRequest)
+			return
+		}
+		code := r.FormValue("code")
+		if code == "" {
+			http.Error(w, fmt.Sprintf("no code in request: %q", r.Form), http.StatusBadRequest)
+			return
+		}
+		//if state := r.FormValue("state"); state != exampleAppState {
+		//	http.Error(w, fmt.Sprintf("expected state %q got %q", exampleAppState, state), http.StatusBadRequest)
+		//	return
+		//}
+		token, err = oauth2Config.Exchange(ctx, code)
+	case http.MethodPost:
+		// Form request from frontend to refresh a token.
+		refresh := r.FormValue("refresh_token")
+		if refresh == "" {
+			http.Error(w, fmt.Sprintf("no refresh_token in request: %q", r.Form), http.StatusBadRequest)
+			return
+		}
+		t := &oauth2.Token{
+			RefreshToken: refresh,
+			Expiry:       time.Now().Add(-time.Hour),
+		}
+		token, err = oauth2Config.TokenSource(ctx, t).Token()
+	default:
+		http.Error(w, fmt.Sprintf("method not implemented: %s", r.Method), http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to get token: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		http.Error(w, "no id_token in token response", http.StatusInternalServerError)
+		return
+	}
+
+	accessToken, ok := token.Extra("access_token").(string)
+	if !ok {
+		http.Error(w, "no access_token in token response", http.StatusInternalServerError)
+		return
+	}
+
+	resp := s.toAccessTokenResponse(rawIDToken, accessToken, token.RefreshToken, s.now())
+	s.writeAccessToken(w, resp)
 }
 
 func (s *Server) handleConnectorLogin(w http.ResponseWriter, r *http.Request) {
@@ -1353,7 +1436,7 @@ func (s *Server) handlePasswordGrant(w http.ResponseWriter, r *http.Request, cli
 type accessTokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
+	ExpiresIn    int    `json:"expires_in,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 	IDToken      string `json:"id_token,omitempty"`
 }

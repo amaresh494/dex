@@ -7,6 +7,7 @@ import (
 	"github.com/dexidp/dex/connector"
 	"github.com/dexidp/dex/pkg/log"
 	"golang.org/x/crypto/ssh"
+	"net/http"
 )
 
 // Config holds configuration options for SSH logins.
@@ -56,4 +57,11 @@ func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, 
 		Username:      username,
 		ConnectorData: []byte(`{"test": "true"}`),
 	}, true, nil
+}
+
+func (sc sshConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
+	clientID, _, _ := r.BasicAuth()
+	return connector.Identity{
+		UserID: clientID,
+	}, nil
 }
