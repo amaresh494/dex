@@ -109,7 +109,7 @@ oauth2:
 staticClients:
     - id: example-app
       redirectURIs:
-      - 'http://127.0.0.1:5555/callback'
+      - 'https://3.7.62.236:4443/pbsworks/api/dex/callback'
       name: 'Example App'
       secret: ZXhhbXBsZS1hcHAtc2VjcmV0
       # Base64 (id:secret): ZXhhbXBsZS1hcHA6WlhoaGJYQnNaUzFoY0hBdGMyVmpjbVYw

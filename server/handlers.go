@@ -196,76 +196,40 @@ func (s *Server) oauth2Config(clientID string, clientSecret string, provider *oi
 	}
 }
 
-func (s *Server) handleAuthorizationCallback(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleAuthorizationCallback(w http.ResponseWriter, r *http.Request, client storage.Client) {
 	var (
-		err   error
-		token *oauth2.Token
+		err error
 	)
 
-	ctx := oidc.ClientContext(r.Context(), http.DefaultClient)
-	provider, err := oidc.NewProvider(ctx, s.issuerURL.String())
+	code := r.FormValue("code")
+	redirectURI := r.Referer()
+	if code == "" {
+		s.tokenErrHelper(w, errInvalidRequest, `Required param: code.`, http.StatusBadRequest)
+		return
+	}
+
+	authCode, err := s.storage.GetAuthCode(code)
+	if err != nil || s.now().After(authCode.Expiry) || authCode.ClientID != client.ID {
+		if err != storage.ErrNotFound {
+			s.logger.Errorf("failed to get auth code: %v", err)
+			s.tokenErrHelper(w, errServerError, "", http.StatusInternalServerError)
+		} else {
+			s.tokenErrHelper(w, errInvalidGrant, "Invalid or expired code parameter.", http.StatusBadRequest)
+		}
+		return
+	}
+
+	if authCode.RedirectURI != redirectURI {
+		s.tokenErrHelper(w, errInvalidRequest, "redirect_uri did not match URI from initial request.", http.StatusBadRequest)
+		return
+	}
+
+	tokenResponse, err := s.exchangeAuthCode(w, authCode, client)
 	if err != nil {
-		fmt.Errorf("failed to query provider %q: %v", s.issuerURL.String(), err)
-	}
-
-	clientID, clientSecret, ok := r.BasicAuth()
-	s.logger.Infof("Callback URL => Client ID: %s, Client Secret: %s, Referer: %s\n",
-		clientID, clientSecret, r.Referer())
-	oauth2Config := s.oauth2Config(clientID, clientSecret, provider, r.Referer())
-
-	switch r.Method {
-	case http.MethodGet:
-		// Authorization redirect callback from OAuth2 auth flow.
-		if errMsg := r.FormValue("error"); errMsg != "" {
-			http.Error(w, errMsg+": "+r.FormValue("error_description"), http.StatusBadRequest)
-			return
-		}
-		code := r.FormValue("code")
-		if code == "" {
-			http.Error(w, fmt.Sprintf("no code in request: %q", r.Form), http.StatusBadRequest)
-			return
-		}
-		//if state := r.FormValue("state"); state != exampleAppState {
-		//	http.Error(w, fmt.Sprintf("expected state %q got %q", exampleAppState, state), http.StatusBadRequest)
-		//	return
-		//}
-		token, err = oauth2Config.Exchange(ctx, code)
-	case http.MethodPost:
-		// Form request from frontend to refresh a token.
-		refresh := r.FormValue("refresh_token")
-		if refresh == "" {
-			http.Error(w, fmt.Sprintf("no refresh_token in request: %q", r.Form), http.StatusBadRequest)
-			return
-		}
-		t := &oauth2.Token{
-			RefreshToken: refresh,
-			Expiry:       time.Now().Add(-time.Hour),
-		}
-		token, err = oauth2Config.TokenSource(ctx, t).Token()
-	default:
-		http.Error(w, fmt.Sprintf("method not implemented: %s", r.Method), http.StatusBadRequest)
+		s.tokenErrHelper(w, errServerError, "", http.StatusInternalServerError)
 		return
 	}
-
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to get token: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	rawIDToken, ok := token.Extra("id_token").(string)
-	if !ok {
-		http.Error(w, "no id_token in token response", http.StatusInternalServerError)
-		return
-	}
-
-	accessToken, ok := token.Extra("access_token").(string)
-	if !ok {
-		http.Error(w, "no access_token in token response", http.StatusInternalServerError)
-		return
-	}
-
-	resp := s.toAccessTokenResponse(rawIDToken, accessToken, token.RefreshToken, s.now())
-	s.writeAccessToken(w, resp)
+	s.writeAccessToken(w, tokenResponse)
 }
 
 func (s *Server) handleConnectorLogin(w http.ResponseWriter, r *http.Request) {
