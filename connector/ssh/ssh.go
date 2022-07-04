@@ -53,9 +53,9 @@ func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, 
 	}
 
 	return connector.Identity{
-		UserID:        client.User(),
-		Username:      username,
-		ConnectorData: []byte(`{"test": "true"}`),
+		UserID:            client.User(),
+		Username:          username,
+		PreferredUsername: username,
 	}, true, nil
 }
 
