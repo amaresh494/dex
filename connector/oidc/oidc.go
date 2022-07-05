@@ -407,6 +407,8 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 	authorizationHeader := "Basic " +
 		base64.StdEncoding.EncodeToString([]byte(c.oauth2Config.ClientID+":"+c.oauth2Config.ClientSecret))
 
+	username := r.Header.Get("preferred_username")
+
 	endpoint := c.provider.Endpoint()
 	client := &http.Client{
 		Timeout: time.Second * 10,
@@ -439,7 +441,9 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 		}
 
 		identity := connector.Identity{
-			UserID: c.oauth2Config.ClientID,
+			UserID:            c.oauth2Config.ClientID,
+			PreferredUsername: username,
+			Username:          username,
 		}
 		return identity, nil
 	} else {

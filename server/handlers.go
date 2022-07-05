@@ -887,11 +887,12 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 	expiry := issuedAt.Add(s.idTokensValidFor)
 
 	tok := idTokenClaims{
-		Issuer:   s.issuerURL.String(),
-		Subject:  subjectString,
-		Nonce:    "",
-		Expiry:   expiry.Unix(),
-		IssuedAt: issuedAt.Unix(),
+		Issuer:            s.issuerURL.String(),
+		Subject:           subjectString,
+		Nonce:             "",
+		Expiry:            expiry.Unix(),
+		IssuedAt:          issuedAt.Unix(),
+		PreferredUsername: ident.PreferredUsername,
 	}
 
 	atHash, err := accessTokenHash(signingAlg, storage.NewID())
@@ -919,6 +920,7 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 	}
 
 	resp := s.toAccessTokenResponse("", accessToken, "", expiry)
+	s.logger.Infof("Client credentials login successful: connectorId: %s", connectorId)
 	s.writeAccessToken(w, resp)
 }
 

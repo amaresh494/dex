@@ -21,7 +21,7 @@ func (c *Config) Open(id string, logger log.Logger) (connector.Connector, error)
 	if c.HostIP == "" {
 		return nil, errors.New("no host ip supplied")
 	}
-	return &sshConnector{c.HostIP, logger}, nil
+	return &sshConnector{c.HostIP, logger, c}, nil
 }
 
 var (
@@ -31,6 +31,7 @@ var (
 type sshConnector struct {
 	host   string
 	logger log.Logger
+	config *Config
 }
 
 func (sc sshConnector) Close() error { return nil }
@@ -61,7 +62,10 @@ func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, 
 
 func (sc sshConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
 	clientID, _, _ := r.BasicAuth()
+	username := r.Header.Get("preferred_username")
 	return connector.Identity{
-		UserID: clientID,
+		UserID:            clientID,
+		Username:          username,
+		PreferredUsername: username,
 	}, nil
 }
