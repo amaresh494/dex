@@ -1,0 +1,176 @@
+
+.login-div {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#logo {
+  width: 150px;
+  height: 26px;
+  margin-left: 123px;
+  background-repeat: no-repeat;
+  background-image: url(../../static/pbsworks/altairaccess.svg);
+}
+
+.username {
+  margin-top: 30px;
+  background-image: url(../../static/pbsworks/unity_user_login.svg) !important;
+  background-repeat: no-repeat !important;
+  padding-left: 30px !important;
+  background-size: 12px 14px !important;
+  background-position: 10px 10px;
+  color: black !important;
+}
+
+.password {
+  margin-top: 20px;
+  background-image: url(../../static/pbsworks/unity_lock.svg) !important;
+  background-repeat: no-repeat !important;
+  padding-left: 30px !important;
+  background-size: 10px;
+  background-position: 10px 10px;
+  color: black !important;
+}
+
+#loginErrorMessage {
+  height: 20px;
+  color: #ff2355;
+}
+
+.login-button {
+  width: 400px;
+}
+
+textarea,
+[type=text],
+[type=url],
+[type=password],
+[type=number],
+[type=search] {
+  display: block;
+  width: 100%;
+  height: 34px;
+  padding: 6px 12px;
+  line-height: 1.42857143;
+  color: #555555;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+  border-radius: 0px;
+  border: 1px solid #4F575E;
+  font-family: NotoSans;
+  height: 36px;
+}
+
+@font-face {
+  font-family: "NotoSans-Bold";
+  src: url(../../static/pbsworks/fonts/notosans/bold/NotoSans-Bold-webfont.eot);
+  src: url(../../static/pbsworks/fonts/notosans/bold/NotoSans-Bold-webfont.eot?#iefix) format('embedded-opentype'), url(../../static/pbsworks/fonts/notosans/bold/NotoSans-Bold-webfont.woff) format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: "NotoSans";
+  src: url(../../static/pbsworks/fonts/notosans/regular/NotoSans-Regular-webfont.eot);
+  src: url(../../static/pbsworks/fonts/notosans/regular/NotoSans-Regular-webfont.eot?#iefix) format('embedded-opentype'), url(../../static/pbsworks/notosans/regular/NotoSans-Regular-webfont.woff) format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+.white-theme button.theme-receiver.primary,
+.white-theme input.theme-receiver.primary,
+.white-theme a.theme-receiver.primary {
+  background-color: #005776;
+  color: #FFFFFF !important;
+  border: 1px solid transparent;
+  opacity: 1;
+  outline: none !important;
+  box-shadow: none;
+  height: 32px!important;
+  padding: 0 16px !important;
+  border-radius: 16px;
+}
+
+.white-theme button.theme-receiver.primary:focus,
+.white-theme input.theme-receiver.primary:focus,
+.white-theme a.theme-receiver.primary:focus {
+  background-color: #005776;
+  color: #FFFFFF;
+  border: 1px solid transparent;
+  opacity: 1;
+}
+
+.white-theme button.theme-receiver.primary:hover,
+.white-theme input.theme-receiver.primary:hover,
+.white-theme a.theme-receiver.primary:hover {
+  background-color: #FFFFFF !important;
+  border: 1px solid #005776;
+  color: #005776 !important;
+  outline: none;
+  box-shadow: none;
+}
+
+.white-theme input[type="text"]:not(.rw-widget-input),
+.white-theme input[type="email"],
+.white-theme input[type="password"],
+.white-theme input[type="number"],
+.white-theme input[type="search"],
+.white-theme select {
+  color: #4A4A4B;
+  border-radius: 2px;
+  border: 1px solid #A2AAAD;
+  height: 24px !important;
+}
+
+.white-theme input[type="text"]:not(.rw-widget-input):hover,
+.white-theme input[type="email"]:hover,
+.white-theme input[type="password"]:hover,
+.white-theme input[type="number"]:hover,
+.white-theme input[type="search"]:hover,
+.white-theme select:hover {
+  border: 1px solid #4D4D4D;
+}
+
+.white-theme input[type="text"]:not(.rw-widget-input):focus,
+.white-theme input[type="email"]:focus,
+.white-theme input[type="password"]:focus,
+.white-theme input[type="number"]:focus,
+.white-theme input[type="search"]:focus,
+.white-theme select:focus {
+  border: 1px solid #2DCCD3;
+}
+
+.white-theme input[type="text"]:not(.rw-widget-input).disabled:not(div),
+.white-theme input[type="email"].disabled:not(div),
+.white-theme input[type="password"].disabled:not(div),
+.white-theme input[type="number"].disabled:not(div),
+.white-theme input[type="search"].disabled:not(div),
+.white-theme select.disabled:not(div) {
+  background: #E3E3E3;
+  border: 1px solid #BDBDBD;
+}
+
+.white-theme input[type="text"]:not(.rw-widget-input).validation-failed,
+.white-theme input[type="email"].validation-failed,
+.white-theme input[type="password"].validation-failed,
+.white-theme input[type="number"].validation-failed,
+.white-theme input[type="search"].validation-failed,
+.white-theme select.validation-failed {
+  background-color: #FCDDDC;
+  border-color: #FA4616;
+}
+
+.white-theme #logindiv .username,
+.white-theme #logindiv .password {
+  background-position-y: 4px;
+  padding: 0;
+}
