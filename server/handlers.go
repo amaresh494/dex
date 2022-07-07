@@ -1410,7 +1410,7 @@ type accessTokenResponse struct {
 func (s *Server) toAccessTokenResponse(idToken, accessToken, refreshToken string, expiry time.Time) *accessTokenResponse {
 	return &accessTokenResponse{
 		accessToken,
-		"bearer",
+		"Bearer",
 		int(expiry.Sub(s.now()).Seconds()),
 		refreshToken,
 		idToken,

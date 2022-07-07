@@ -45,6 +45,7 @@ type serveOptions struct {
 	webHTTPSAddr  string
 	telemetryAddr string
 	grpcAddr      string
+	env           string
 }
 
 func commandServe() *cobra.Command {
@@ -71,6 +72,7 @@ func commandServe() *cobra.Command {
 	flags.StringVar(&options.webHTTPSAddr, "web-https-addr", "", "Web HTTPS address")
 	flags.StringVar(&options.telemetryAddr, "telemetry-addr", "", "Telemetry address")
 	flags.StringVar(&options.grpcAddr, "grpc-addr", "", "gRPC API address")
+	flags.StringVar(&options.env, "env", "", "Environment")
 
 	return cmd
 }
