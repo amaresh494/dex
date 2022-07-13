@@ -132,6 +132,7 @@ const (
 	grantTypePassword          = "password"
 	grantTypeDeviceCode        = "urn:ietf:params:oauth:grant-type:device_code"
 	grantTypeClientCredentials = "client_credentials"
+	grantTypeOnBehalf          = "on_behalf"
 )
 
 const (

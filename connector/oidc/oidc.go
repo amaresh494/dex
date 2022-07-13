@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -136,6 +137,12 @@ func (c *Config) Open(id string, logger log.Logger) (conn connector.Connector, e
 		c.PromptType = "consent"
 	}
 
+	providerUrls, err := GetProviderUrls(ctx, c.Issuer)
+	if err != nil {
+		cancel()
+		return nil, fmt.Errorf("failed to get provider urls: %v", err)
+	}
+
 	clientID := c.ClientID
 	return &oidcConnector{
 		provider:    provider,
@@ -163,6 +170,7 @@ func (c *Config) Open(id string, logger log.Logger) (conn connector.Connector, e
 		preferredUsernameKey:      c.ClaimMapping.PreferredUsernameKey,
 		emailKey:                  c.ClaimMapping.EmailKey,
 		groupsKey:                 c.ClaimMapping.GroupsKey,
+		providerUrls:              providerUrls,
 	}, nil
 }
 
@@ -189,6 +197,7 @@ type oidcConnector struct {
 	preferredUsernameKey      string
 	emailKey                  string
 	groupsKey                 string
+	providerUrls              *OidcProviderUrls
 }
 
 func (c *oidcConnector) Close() error {
@@ -448,5 +457,101 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 		return identity, nil
 	} else {
 		return identity, errors.New(bodyString)
+	}
+}
+
+func (c *oidcConnector) HandleOnBehalf(r *http.Request) (identity connector.Identity, err error) {
+	authorizationHeader := "Bearer " + r.PostFormValue("access_token")
+
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, c.providerUrls.UserInfoURL, nil)
+	if err != nil {
+		c.logger.Infof("HandleOnBehalf: %s", err)
+		return identity, err
+	}
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("cache-control", "no-cache")
+	req.Header.Set("authorization", authorizationHeader)
+
+	response, err := client.Do(req)
+	if err != nil {
+		return identity, err
+	}
+	defer response.Body.Close()
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return identity, err
+	}
+
+	if response.StatusCode == http.StatusOK {
+		var userInfo Json
+		err = json.Unmarshal(bodyBytes, &userInfo)
+		if err != nil {
+			return identity, err
+		}
+
+		const subjectClaimKey = "sub"
+		subject, found := userInfo.Get(subjectClaimKey)
+		if !found {
+			return identity, fmt.Errorf("missing \"%s\" claim", subjectClaimKey)
+		}
+
+		userNameKey := "name"
+		if c.userNameKey != "" {
+			userNameKey = c.userNameKey
+		}
+		name, found := userInfo.Get(userNameKey)
+		if !found {
+			return identity, fmt.Errorf("missing \"%s\" claim", userNameKey)
+		}
+
+		preferredUsername, found := userInfo.Get("preferred_username")
+		if (!found || c.overrideClaimMapping) && c.preferredUsernameKey != "" {
+			preferredUsername, _ = userInfo.Get(c.preferredUsernameKey)
+		}
+
+		hasEmailScope := false
+		for _, s := range c.oauth2Config.Scopes {
+			if s == "email" {
+				hasEmailScope = true
+				break
+			}
+		}
+
+		var email string
+		emailKey := "email"
+		email, found = userInfo.Get(emailKey)
+		if (!found || c.overrideClaimMapping) && c.emailKey != "" {
+			emailKey = c.emailKey
+			email, found = userInfo.Get(emailKey)
+		}
+
+		if !found && hasEmailScope {
+			return identity, fmt.Errorf("missing email claim, not found \"%s\" key", emailKey)
+		}
+
+		identity = connector.Identity{
+			UserID:            subject,
+			Username:          name,
+			PreferredUsername: preferredUsername,
+			Email:             email,
+		}
+
+		if c.userIDKey != "" {
+			userID, found := userInfo.Get(c.userIDKey)
+			if !found {
+				return identity, fmt.Errorf("oidc: not found %v claim", c.userIDKey)
+			}
+			identity.UserID = userID
+		}
+
+		return identity, nil
+	} else {
+		bodyString := string(bodyBytes)
+		code := strconv.Itoa(response.StatusCode)
+		return identity, errors.New("Failed with status code: " + code + ", message: " + bodyString)
 	}
 }

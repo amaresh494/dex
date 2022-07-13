@@ -105,3 +105,10 @@ type ClientCredentialsConnector interface {
 	// HandleClientCredentials handles the client credentials flow
 	HandleClientCredentials(r *http.Request) (identity Identity, err error)
 }
+
+// OnBehalfConnector is an interface implemented by connectors which validates third-party auth provider
+// identity and return access token.
+type OnBehalfConnector interface {
+	// HandleOnBehalf handles the on behalf flow
+	HandleOnBehalf(r *http.Request) (identity Identity, err error)
+}

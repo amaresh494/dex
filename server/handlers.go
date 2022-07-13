@@ -832,9 +832,103 @@ func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 		s.withClientFromStorage(w, r, s.handlePasswordGrant)
 	case grantTypeClientCredentials:
 		s.withClientFromStorage(w, r, s.handleClientCredentialsToken)
+	case grantTypeOnBehalf:
+		s.withClientFromStorage(w, r, s.handleTokenOnBehalf)
 	default:
 		s.tokenErrHelper(w, errUnsupportedGrantType, "", http.StatusBadRequest)
 	}
+}
+
+func (s *Server) handleTokenOnBehalf(w http.ResponseWriter, r *http.Request, client storage.Client) {
+	connectorId := r.PostFormValue("connector_id")
+	conn, err := s.getConnector(connectorId)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("connector with ID %q not found: %v", connectorId, err),
+			http.StatusBadRequest)
+		return
+	}
+
+	var ident connector.Identity
+	if ccConnector, ok := conn.Connector.(connector.OnBehalfConnector); ok {
+		newIdent, err := ccConnector.HandleOnBehalf(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to authenticate using on behalf token: %v", err),
+				http.StatusUnauthorized)
+			return
+		}
+		ident = newIdent
+	}
+
+	keys, err := s.storage.GetKeys()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get keys: %v", err),
+			http.StatusInternalServerError)
+		return
+	}
+
+	signingKey := keys.SigningKey
+	if signingKey == nil {
+		http.Error(w, fmt.Sprintf("no key to sign payload with", err),
+			http.StatusInternalServerError)
+		return
+	}
+	signingAlg, err := signatureAlgorithm(signingKey)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get signing algorithm: %v", err),
+			http.StatusInternalServerError)
+		return
+	}
+
+	sub := &internal.IDTokenSubject{
+		UserId: ident.UserID,
+		ConnId: connectorId,
+	}
+	subjectString, err := internal.Marshal(sub)
+
+	issuedAt := s.now()
+	expiry := issuedAt.Add(s.idTokensValidFor)
+
+	tok := idTokenClaims{
+		Issuer:            s.issuerURL.String(),
+		Subject:           subjectString,
+		Nonce:             "",
+		Expiry:            expiry.Unix(),
+		IssuedAt:          issuedAt.Unix(),
+		PreferredUsername: ident.PreferredUsername,
+		Name:              ident.Username,
+		Email:             ident.Email,
+		EmailVerified:     &ident.EmailVerified,
+		Groups:            ident.Groups,
+		AuthorizingParty:  connectorId,
+	}
+
+	atHash, err := accessTokenHash(signingAlg, storage.NewID())
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error computing at_hash: %v", err),
+			http.StatusInternalServerError)
+		return
+	}
+	tok.AccessTokenHash = atHash
+	tok.Audience = audience{ident.UserID}
+	tok.AuthorizingParty = ident.UserID
+
+	payload, err := json.Marshal(tok)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("could not serialize claims: %v", err),
+			http.StatusInternalServerError)
+		return
+	}
+
+	var accessToken string
+	if accessToken, err = signPayload(signingKey, signingAlg, payload); err != nil {
+		http.Error(w, fmt.Sprintf("failed to sign payload: %v", err),
+			http.StatusInternalServerError)
+		return
+	}
+
+	resp := s.toAccessTokenResponse("", accessToken, "", expiry)
+	s.logger.Infof("On behalf login successful: connectorId: %s", connectorId)
+	s.writeAccessToken(w, resp)
 }
 
 func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Request, client storage.Client) {
@@ -850,7 +944,7 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 	if ccConnector, ok := conn.Connector.(connector.ClientCredentialsConnector); ok {
 		newIdent, err := ccConnector.HandleClientCredentials(r)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to authenticate using client credentials: %v", err),
+			http.Error(w, fmt.Sprintf("failed to authenticate using on behalf token: %v", err),
 				http.StatusUnauthorized)
 			return
 		}
@@ -920,7 +1014,7 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 	}
 
 	resp := s.toAccessTokenResponse("", accessToken, "", expiry)
-	s.logger.Infof("Client credentials login successful: connectorId: %s", connectorId)
+	s.logger.Infof("On behalf login successful: connectorId: %s", connectorId)
 	s.writeAccessToken(w, resp)
 }
 
