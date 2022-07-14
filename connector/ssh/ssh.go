@@ -62,10 +62,11 @@ func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, 
 
 func (sc sshConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
 	clientID, _, _ := r.BasicAuth()
-	username := r.Header.Get("preferred_username")
+	subject := r.Header.Get("subject")
+	if subject == "" {
+		subject = clientID
+	}
 	return connector.Identity{
-		UserID:            clientID,
-		Username:          username,
-		PreferredUsername: username,
+		UserID: subject,
 	}, nil
 }

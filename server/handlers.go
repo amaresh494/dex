@@ -944,7 +944,7 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 	if ccConnector, ok := conn.Connector.(connector.ClientCredentialsConnector); ok {
 		newIdent, err := ccConnector.HandleClientCredentials(r)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to authenticate using on behalf token: %v", err),
+			http.Error(w, fmt.Sprintf("failed to authenticate using client credentials: %v", err),
 				http.StatusUnauthorized)
 			return
 		}
@@ -1014,7 +1014,7 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 	}
 
 	resp := s.toAccessTokenResponse("", accessToken, "", expiry)
-	s.logger.Infof("On behalf login successful: connectorId: %s", connectorId)
+	s.logger.Infof("Client credentials login successful: connectorId: %s", connectorId)
 	s.writeAccessToken(w, resp)
 }
 

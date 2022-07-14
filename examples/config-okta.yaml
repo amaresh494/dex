@@ -132,7 +132,7 @@ connectors:
       insecureSkipEmailVerified: true
       overrideClaimMapping: true
       claimMapping:
-          preferred_username: "email"
+          sub: "email"
 
 # - type: google
 #   id: google

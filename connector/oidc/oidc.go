@@ -64,8 +64,8 @@ type Config struct {
 	OverrideClaimMapping bool `json:"overrideClaimMapping"` // defaults to false
 
 	ClaimMapping struct {
-		// Configurable key which contains the preferred username claims
-		PreferredUsernameKey string `json:"preferred_username"` // defaults to "preferred_username"
+		// Configurable key which contains the subject claims
+		SubjectKey string `json:"sub"` // defaults to "sub"
 
 		// Configurable key which contains the email claims
 		EmailKey string `json:"email"` // defaults to "email"
@@ -167,7 +167,7 @@ func (c *Config) Open(id string, logger log.Logger) (conn connector.Connector, e
 		userIDKey:                 c.UserIDKey,
 		userNameKey:               c.UserNameKey,
 		overrideClaimMapping:      c.OverrideClaimMapping,
-		preferredUsernameKey:      c.ClaimMapping.PreferredUsernameKey,
+		subjectKey:                c.ClaimMapping.SubjectKey,
 		emailKey:                  c.ClaimMapping.EmailKey,
 		groupsKey:                 c.ClaimMapping.GroupsKey,
 		providerUrls:              providerUrls,
@@ -194,7 +194,7 @@ type oidcConnector struct {
 	userIDKey                 string
 	userNameKey               string
 	overrideClaimMapping      bool
-	preferredUsernameKey      string
+	subjectKey                string
 	emailKey                  string
 	groupsKey                 string
 	providerUrls              *OidcProviderUrls
@@ -304,8 +304,11 @@ func (c *oidcConnector) createIdentity(ctx context.Context, identity connector.I
 
 	const subjectClaimKey = "sub"
 	subject, found := claims[subjectClaimKey].(string)
-	if !found {
-		return identity, fmt.Errorf("missing \"%s\" claim", subjectClaimKey)
+	if (!found || c.overrideClaimMapping) && c.subjectKey != "" {
+		subject, ok = claims[c.subjectKey].(string)
+		if !ok {
+			return identity, fmt.Errorf("missing \"%s\" claim", c.subjectKey)
+		}
 	}
 
 	userNameKey := "name"
@@ -318,8 +321,8 @@ func (c *oidcConnector) createIdentity(ctx context.Context, identity connector.I
 	}
 
 	preferredUsername, found := claims["preferred_username"].(string)
-	if (!found || c.overrideClaimMapping) && c.preferredUsernameKey != "" {
-		preferredUsername, _ = claims[c.preferredUsernameKey].(string)
+	if !found {
+		return identity, fmt.Errorf("missing preferred_username claim")
 	}
 
 	hasEmailScope := false
@@ -411,12 +414,12 @@ type ClientCredentialsResponse struct {
 func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
 	data := url.Values{}
 	data.Set("grant_type", "client_credentials")
-	data.Set("scope", "service_app")
+	data.Set("scope", "client_credentials")
 
 	authorizationHeader := "Basic " +
 		base64.StdEncoding.EncodeToString([]byte(c.oauth2Config.ClientID+":"+c.oauth2Config.ClientSecret))
 
-	username := r.Header.Get("preferred_username")
+	subject := r.Header.Get("subject")
 
 	endpoint := c.provider.Endpoint()
 	client := &http.Client{
@@ -450,9 +453,7 @@ func (c *oidcConnector) HandleClientCredentials(r *http.Request) (identity conne
 		}
 
 		identity := connector.Identity{
-			UserID:            c.oauth2Config.ClientID,
-			PreferredUsername: username,
-			Username:          username,
+			UserID: subject,
 		}
 		return identity, nil
 	} else {
@@ -495,8 +496,11 @@ func (c *oidcConnector) HandleOnBehalf(r *http.Request) (identity connector.Iden
 
 		const subjectClaimKey = "sub"
 		subject, found := userInfo.Get(subjectClaimKey)
-		if !found {
-			return identity, fmt.Errorf("missing \"%s\" claim", subjectClaimKey)
+		if (!found || c.overrideClaimMapping) && c.subjectKey != "" {
+			subject, found = userInfo.Get(c.subjectKey)
+			if !found {
+				return identity, fmt.Errorf("missing \"%s\" claim", c.subjectKey)
+			}
 		}
 
 		userNameKey := "name"
@@ -509,8 +513,8 @@ func (c *oidcConnector) HandleOnBehalf(r *http.Request) (identity connector.Iden
 		}
 
 		preferredUsername, found := userInfo.Get("preferred_username")
-		if (!found || c.overrideClaimMapping) && c.preferredUsernameKey != "" {
-			preferredUsername, _ = userInfo.Get(c.preferredUsernameKey)
+		if !found {
+			return identity, fmt.Errorf("missing preferred_username claim")
 		}
 
 		hasEmailScope := false
