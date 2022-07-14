@@ -835,7 +835,7 @@ func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 	case grantTypeOnBehalf:
 		s.withClientFromStorage(w, r, s.handleTokenOnBehalf)
 	default:
-		s.tokenErrHelper(w, errUnsupportedGrantType, "", http.StatusBadRequest)
+		s.tokenErrHelper(w, grantType+" is an "+errUnsupportedGrantType, "", http.StatusBadRequest)
 	}
 }
 
