@@ -60,6 +60,16 @@ func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, 
 	}, true, nil
 }
 
+// connectorData stores information for sessions authenticated by this connector
+type connectorData struct {
+	RefreshToken []byte
+}
+
+// Refresh is used to refresh a session with the refresh token provided by the IdP
+func (sc sshConnector) Refresh(ctx context.Context, s connector.Scopes, identity connector.Identity) (connector.Identity, error) {
+	return identity, nil
+}
+
 func (sc sshConnector) HandleClientCredentials(r *http.Request) (identity connector.Identity, err error) {
 	clientID, _, _ := r.BasicAuth()
 	subject := r.Header.Get("subject")

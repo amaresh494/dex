@@ -17,9 +17,9 @@ body {
 #logo {
   width: 150px;
   height: 26px;
-  margin-left: 123px;
   background-repeat: no-repeat;
   background-image: url(../../static/pbsworks/altairaccess.svg);
+  margin: 0 auto;
 }
 
 .username {
@@ -193,7 +193,7 @@ textarea,
 }
 
 .error-message {
-  margin-top: 30px;
+  margin-top: 20px;
   font-size: 14px;
   height: 30px;
   text-align: center;
@@ -205,6 +205,7 @@ textarea,
   font-size: 20px;
   font-weight: bold;
   color: #7f8fa4;
+  margin-bottom: 5px;
 }
 
 .message-error {

@@ -971,11 +971,12 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	sub := &internal.IDTokenSubject{
-		UserId: ident.UserID,
-		ConnId: connectorId,
-	}
-	subjectString, err := internal.Marshal(sub)
+	//sub := &internal.IDTokenSubject{
+	//	UserId: ident.UserID,
+	//	ConnId: connectorId,
+	//}
+	//subjectString, err := internal.Marshal(sub)
+	subjectString := ident.UserID
 
 	issuedAt := s.now()
 	expiry := issuedAt.Add(s.idTokensValidFor)
