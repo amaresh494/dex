@@ -1,4 +1,8 @@
 
+body {
+  font-family: NotoSans;
+}
+
 .login-div {
   position: absolute;
   top: 0;
@@ -173,4 +177,38 @@ textarea,
 .white-theme #logindiv .password {
   background-position-y: 4px;
   padding: 0;
+}
+
+.error-div {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-message {
+  margin-top: 30px;
+  font-size: 14px;
+  height: 30px;
+  text-align: center;
+  display: table;
+  vertical-align: middle;
+}
+
+.error-message .message-title{
+  font-size: 20px;
+  font-weight: bold;
+  color: #7f8fa4;
+}
+
+.message-error {
+  color: #ff2355;
+}
+
+.message-title {
+  color: lightblue;
 }
