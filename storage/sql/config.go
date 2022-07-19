@@ -101,7 +101,7 @@ func dataSourceStr(str string) string {
 // createDataSourceName takes the configuration provided via the Postgres
 // struct to create a data-source name that Go's database/sql package can
 // make use of.
-func (p *Postgres) createDataSourceName() string {
+func (p *Postgres) createDataSourceName() (string, error) {
 	parameters := []string{}
 
 	addParam := func(key, val string) {
@@ -135,7 +135,11 @@ func (p *Postgres) createDataSourceName() string {
 	}
 
 	if p.Password != "" {
-		addParam("password", dataSourceStr(p.Password))
+		passwd, err := decrypt(p.Password)
+		if err != nil {
+			return "", err
+		}
+		addParam("password", dataSourceStr(passwd))
 	}
 
 	if p.Database != "" {
@@ -161,11 +165,14 @@ func (p *Postgres) createDataSourceName() string {
 		addParam("sslkey", dataSourceStr(p.SSL.KeyFile))
 	}
 
-	return strings.Join(parameters, " ")
+	return strings.Join(parameters, " "), nil
 }
 
 func (p *Postgres) open(logger log.Logger) (*conn, error) {
-	dataSourceName := p.createDataSourceName()
+	dataSourceName, err := p.createDataSourceName()
+	if err != nil {
+		return nil, err
+	}
 
 	db, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
@@ -225,9 +232,14 @@ func (s *MySQL) Open(logger log.Logger) (storage.Storage, error) {
 }
 
 func (s *MySQL) open(logger log.Logger) (*conn, error) {
+	passwd, err := decrypt(s.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := mysql.Config{
 		User:                 s.User,
-		Passwd:               s.Password,
+		Passwd:               passwd,
 		DBName:               s.Database,
 		AllowNativePasswords: true,
 
