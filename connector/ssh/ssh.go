@@ -53,6 +53,13 @@ func (sc sshConnector) Login(ctx context.Context, s connector.Scopes, username, 
 		return connector.Identity{}, false, err
 	}
 
+	defer func(client *ssh.Client) {
+		err := client.Close()
+		if err != nil {
+			sc.logger.Error(err)
+		}
+	}(client)
+
 	return connector.Identity{
 		UserID:            client.User(),
 		Username:          username,
