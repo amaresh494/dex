@@ -215,3 +215,18 @@ textarea,
 .message-title {
   color: lightblue;
 }
+
+.app-logo {
+  display: flex;
+  padding: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-descirption {
+  word-break: break-word;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  padding: 20px;
+}
