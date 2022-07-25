@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setLocale();
 });
 async function setLocale() {
-  let configurationResp = await fetch(`/pbsworks/data/pa/locale/en_US.json`);
+  let configurationResp = await fetch(`/pbsworks/data/pa/config/configuration.json`);
   configuration = await configurationResp.json();
   let newLocale = configuration.locale.default;
   applyBranding(configuration.branding);
