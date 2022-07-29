@@ -212,6 +212,10 @@ textarea,
   color: #ff2355;
 }
 
+.message-text {
+    color: #000000;
+}
+
 .message-title {
   color: lightblue;
 }
