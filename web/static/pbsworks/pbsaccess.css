@@ -230,3 +230,20 @@ textarea,
   text-align: center;
   padding: 20px;
 }
+
+.logout-message .loginAgainLink{
+  padding: 15px 0;
+}
+
+.logout-message .loginAgainLink a{
+  padding: 15px 0;
+}
+
+a {
+  color: #005776;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
