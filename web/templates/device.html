@@ -1,23 +1,35 @@
-{{ template "header.html" . }}
+<html lang="en"><head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<link rel="shortcut icon" href="{{ url .ReqPath "static/pbsworks/favicon.ico" }}">
+	<link rel="icon" href="{{ url .ReqPath "static/pbsworks/favicon.ico" }}" type="image/x-icon">
+  <link href="{{ url .ReqPath "static/pbsworks/pbsaccess.css" }}" rel="stylesheet">
+	<script src="{{ url .ReqPath "static/js/scripts.js" }}"></script>
+	<title>Device-Altair Access</title>
+<style>
 
-<div class="theme-panel">
-  <h2 class="theme-heading">Enter User Code</h2>
-  <form method="post" action="{{ .PostURL }}" method="get">
-    <div class="theme-form-row">
-      {{ if( .UserCode  )}}
-      <input tabindex="2" required id="user_code" name="user_code" type="text" class="theme-form-input" autocomplete="off" value="{{.UserCode}}" {{ if .Invalid }} autofocus {{ end }}/>
-      {{ else }}
-      <input tabindex="2" required id="user_code" name="user_code" type="text" class="theme-form-input" placeholder="XXXX-XXXX" autocomplete="off"  {{ if .Invalid }} autofocus {{ end }}/>
-      {{ end }}
+</style>
+<body>
+<div id="root" style="width: 100%; height: 100%; overflow: hidden; font-size: 14px;" class="white-theme">
+  <div class="login-div">
+    <div id="logindiv">
+      <h2 class="theme-heading heading-center">Enter User Code</h2>
+      <form method="post" action="{{ .PostURL }}" method="get">
+        {{ if( .UserCode  )}}
+        <input data-i18n-key="placeholder" tabindex="2" required id="user_code" name="user_code" type="text" class="input-text theme-form-input" autocomplete="off" value="{{.UserCode}}" {{ if .Invalid }} autofocus {{ end }}/>
+        {{ else }}
+        <input data-i18n-key="placeholder" tabindex="2" required id="user_code" name="user_code" type="text" class="input-text theme-form-input" placeholder="XXXX-XXXX" autocomplete="off"  {{ if .Invalid }} autofocus {{ end }}/>
+        {{ end }}
+        <div id="loginErrorMessage">
+        {{ if .Invalid }}
+          Invalid or Expired User Code
+        {{ end }}
+        </div>
+        <button data-i18n-key="value" tabindex="3" id="submit-login" type="submit" class="login-button theme-receiver primary">Submit</button>
+      </form>
     </div>
-
-    {{ if .Invalid }}
-    <div id="login-error" class="dex-error-box">
-      Invalid or Expired User Code
-    </div>
-    {{ end }}
-    <button tabindex="3" id="submit-login" type="submit" class="dex-btn theme-btn--primary">Submit</button>
-  </form>
+  </div>
 </div>
-
-{{ template "footer.html" . }}
+</body>
+</html>
