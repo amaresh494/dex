@@ -67,11 +67,11 @@ telemetry:
 
 # Uncomment this block to enable the gRPC API. This values MUST be different
 # from the HTTP endpoints.
-# grpc:
-#   addr: 127.0.0.1:5557
-#   tlsCert: examples/grpc-client/server.crt
-#   tlsKey: examples/grpc-client/server.key
-#   tlsClientCA: examples/grpc-client/ca.crt
+grpc:
+   addr: 127.0.0.1:5557
+   tlsCert: /opt/nextgen/source/dex/server.crt
+   tlsKey: /opt/nextgen/source/dex/server.key
+   tlsClientCA: /opt/nextgen/source/dex/ca.crt
 
 # Uncomment this block to enable configuration for the expiration time durations.
 # Is possible to specify units using only s, m and h suffixes.
