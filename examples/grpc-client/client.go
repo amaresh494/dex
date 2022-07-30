@@ -44,6 +44,7 @@ func newDexClient(hostAndPort, caPath, clientCrt, clientKey string) (api.DexClie
 }
 
 func main() {
+	host := flag.String("host", "", "Host with Port")
 	caCrt := flag.String("ca-crt", "", "CA certificate")
 	clientCrt := flag.String("client-crt", "", "Client certificate")
 	clientKey := flag.String("client-key", "", "Client key")
@@ -54,9 +55,13 @@ func main() {
 	remove := flag.Bool("remove", false, "Remove client")
 	flag.Parse()
 
-	usage := "(Usage: --ca-crt=<ca-cert-path> --client-crt=<path client.crt> --client-key=<path client key>" +
+	usage := "(Usage: --host=<host:port> --ca-crt=<ca-cert-path> --client-crt=<path client.crt> --client-key=<path client key>" +
 		" --client-id=<client-id> --client-name=<client-name> --client-secret=<client-secret> " +
 		"--redirect-uris=<comma separated uris> --delete=<delete flag>)"
+
+	if *host == "" {
+		log.Fatal("Please provide Host with Port. " + usage)
+	}
 
 	if *caCrt == "" {
 		log.Fatal("Please provide CA certificate. " + usage)
@@ -74,7 +79,7 @@ func main() {
 		log.Fatal("Please provide Client ID. " + usage)
 	}
 
-	client, err := newDexClient("127.0.0.1:5557", *caCrt, *clientCrt, *clientKey)
+	client, err := newDexClient(*host, *caCrt, *clientCrt, *clientKey)
 	if err != nil {
 		log.Fatalf("failed creating dex client: %v ", err)
 	}
