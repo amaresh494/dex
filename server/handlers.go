@@ -899,7 +899,6 @@ func (s *Server) handleTokenOnBehalf(w http.ResponseWriter, r *http.Request, cli
 		Email:             ident.Email,
 		EmailVerified:     &ident.EmailVerified,
 		Groups:            ident.Groups,
-		AuthorizingParty:  connectorId,
 	}
 
 	atHash, err := accessTokenHash(signingAlg, storage.NewID())
@@ -909,8 +908,8 @@ func (s *Server) handleTokenOnBehalf(w http.ResponseWriter, r *http.Request, cli
 		return
 	}
 	tok.AccessTokenHash = atHash
-	tok.Audience = audience{ident.UserID}
-	tok.AuthorizingParty = ident.UserID
+	tok.Audience = audience{client.ID}
+	tok.AuthorizingParty = client.ID
 
 	payload, err := json.Marshal(tok)
 	if err != nil {
@@ -997,8 +996,8 @@ func (s *Server) handleClientCredentialsToken(w http.ResponseWriter, r *http.Req
 		return
 	}
 	tok.AccessTokenHash = atHash
-	tok.Audience = audience{ident.UserID}
-	tok.AuthorizingParty = ident.UserID
+	tok.Audience = audience{client.ID}
+	tok.AuthorizingParty = client.ID
 
 	payload, err := json.Marshal(tok)
 	if err != nil {
