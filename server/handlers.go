@@ -879,18 +879,12 @@ func (s *Server) handleTokenOnBehalf(w http.ResponseWriter, r *http.Request, cli
 		return
 	}
 
-	sub := &internal.IDTokenSubject{
-		UserId: ident.UserID,
-		ConnId: connectorId,
-	}
-	subjectString, err := internal.Marshal(sub)
-
 	issuedAt := s.now()
 	expiry := issuedAt.Add(s.idTokensValidFor)
 
 	tok := idTokenClaims{
 		Issuer:            s.issuerURL.String(),
-		Subject:           subjectString,
+		Subject:           ident.UserID,
 		Nonce:             "",
 		Expiry:            expiry.Unix(),
 		IssuedAt:          issuedAt.Unix(),

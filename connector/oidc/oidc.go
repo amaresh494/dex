@@ -290,6 +290,7 @@ func (c *oidcConnector) createIdentity(ctx context.Context, identity connector.I
 		// ID tokens aren't mandatory in the reply when using a refresh_token grant
 		return identity, errors.New("oidc: no id_token in token response")
 	}
+	c.logger.Debugf("OIDC provider access token: %s", token.AccessToken)
 
 	// We immediately want to run getUserInfo if configured before we validate the claims
 	if c.getUserInfo {
