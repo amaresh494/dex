@@ -196,6 +196,23 @@ func (s *Server) oauth2Config(clientID string, clientSecret string, provider *oi
 	}
 }
 
+func (s *Server) handleAuthCodeError(w http.ResponseWriter, err error) {
+	var errType string
+	var errMsg string
+	var statusCode int
+	if err != storage.ErrNotFound {
+		errType = errServerError
+		errMsg = fmt.Sprintf("failed to get auth code: %v", err)
+		statusCode = http.StatusInternalServerError
+	} else {
+		errType = errInvalidGrant
+		errMsg = fmt.Sprintf("Invalid code parameter. More details: %v", err)
+		statusCode = http.StatusBadRequest
+	}
+	s.logger.Errorf(errMsg)
+	s.tokenErrHelper(w, errType, errMsg, statusCode)
+}
+
 func (s *Server) handleAuthorizationCallback(w http.ResponseWriter, r *http.Request, client storage.Client) {
 	var (
 		err error
@@ -210,20 +227,7 @@ func (s *Server) handleAuthorizationCallback(w http.ResponseWriter, r *http.Requ
 
 	authCode, err := s.storage.GetAuthCode(code)
 	if err != nil {
-		var errType string
-		var errMsg string
-		var statusCode int
-		if err != storage.ErrNotFound {
-			errType = errServerError
-			errMsg = fmt.Sprintf("failed to get auth code: %v", err)
-			statusCode = http.StatusInternalServerError
-		} else {
-			errType = errInvalidGrant
-			errMsg = fmt.Sprintf("Invalid code parameter. More details: %v", err)
-			statusCode = http.StatusBadRequest
-		}
-		s.logger.Errorf(errMsg)
-		s.tokenErrHelper(w, errType, errMsg, statusCode)
+		s.handleAuthCodeError(w, err)
 		return
 	}
 
@@ -1054,20 +1058,7 @@ func (s *Server) handleAuthCode(w http.ResponseWriter, r *http.Request, client s
 
 	authCode, err := s.storage.GetAuthCode(code)
 	if err != nil {
-		var errType string
-		var errMsg string
-		var statusCode int
-		if err != storage.ErrNotFound {
-			errType = errServerError
-			errMsg = fmt.Sprintf("failed to get auth code: %v", err)
-			statusCode = http.StatusInternalServerError
-		} else {
-			errType = errInvalidGrant
-			errMsg = fmt.Sprintf("Invalid code parameter. More details: %v", err)
-			statusCode = http.StatusBadRequest
-		}
-		s.logger.Errorf(errMsg)
-		s.tokenErrHelper(w, errType, errMsg, statusCode)
+		s.handleAuthCodeError(w, err)
 		return
 	}
 
