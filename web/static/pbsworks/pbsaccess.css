@@ -22,6 +22,10 @@ body {
   margin: 0 auto;
 }
 
+.login-btn-container {
+  margin-top: 20px;
+}
+
 .username {
   margin-top: 30px;
   background-image: url(../../static/pbsworks/unity_user_login.svg) !important;
@@ -29,6 +33,11 @@ body {
   padding-left: 30px !important;
   background-size: 12px 14px !important;
   background-position: 10px 10px;
+  color: black !important;
+}
+
+.input-text {
+  margin-top: 30px;
   color: black !important;
 }
 
@@ -212,6 +221,11 @@ textarea,
   color: #ff2355;
 }
 
+.message-text {
+    color: #000000;
+    margin-top: 15px;
+}
+
 .message-title {
   color: lightblue;
 }
@@ -229,6 +243,14 @@ textarea,
   max-width: 400px;
   text-align: center;
   padding: 20px;
+}
+
+.heading-center {
+  text-align: center;
+}
+
+.login-btn-row {
+  padding: 10px;
 }
 
 .logout-message .loginAgainLink{

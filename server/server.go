@@ -364,6 +364,7 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 	})
 	handleFunc("/auth/{connector}", s.handleConnectorLogin)
 	handleFunc("/auth/{connector}/login", s.handlePasswordLogin)
+	// Device Flow Steps: https://github.com/dexidp/dex/pull/1706, https://www.oauth.com/playground/device-code.html
 	handleFunc("/device", s.handleDeviceExchange)
 	handleFunc("/device/auth/verify_code", s.verifyUserCode)
 	handleFunc("/device/code", s.handleDeviceCode)

@@ -1,19 +1,34 @@
-{{ template "header.html" . }}
+<html lang="en"><head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<link rel="shortcut icon" href="{{ url .ReqPath "static/pbsworks/favicon.ico" }}">
+	<link rel="icon" href="{{ url .ReqPath "static/pbsworks/favicon.ico" }}" type="image/x-icon">
+  <link href="{{ url .ReqPath "static/pbsworks/pbsaccess.css" }}" rel="stylesheet">
+  <script src="{{ url .ReqPath "static/js/scripts.js" }}"></script>
+	<title>Login-Altair Access</title>
+<style>
 
-<div class="theme-panel">
-  <h2 class="theme-heading">Log in to {{ issuer }} </h2>
-  <div>
-    {{ range $c := .Connectors }}
-      <div class="theme-form-row">
-        <a href="{{ $c.URL }}" target="_self">
-          <button class="dex-btn theme-btn-provider">
-            <span class="dex-btn-icon dex-btn-icon--{{ $c.Type }}"></span>
-            <span class="dex-btn-text">Log in with {{ $c.Name }}</span>
-          </button>
-        </a>
-      </div>
-    {{ end }}
+</style>
+<body>
+<div id="root" style="width: 100%; height: 100%; overflow: hidden; font-size: 14px;" class="white-theme">
+  <div class="login-div">
+    <div id="logindiv">
+      <div id="logo">&nbsp;</div>
+			<div class="login-btn-container">
+	      {{ range $c := .Connectors }}
+	        <div class="theme-form-row login-btn-row">
+	          <a href="{{ $c.URL }}" target="_self">
+	            <button class="login-button theme-receiver primary">
+	              <span class="dex-btn-icon dex-btn-icon--{{ $c.Type }}"></span>
+	              <span class="dex-btn-text">Log in with {{ $c.Name }}</span>
+	            </button>
+	          </a>
+	        </div>
+	      {{ end }}
+			</div>
+    </div>
   </div>
 </div>
-
-{{ template "footer.html" . }}
+</body>
+</html>
