@@ -209,14 +209,32 @@ func (s *Server) handleAuthorizationCallback(w http.ResponseWriter, r *http.Requ
 	}
 
 	authCode, err := s.storage.GetAuthCode(code)
-	if err != nil || s.now().After(authCode.Expiry) || authCode.ClientID != client.ID {
+	if err != nil {
+		var errType string
+		var errMsg string
+		var statusCode int
 		if err != storage.ErrNotFound {
-			s.logger.Errorf("failed to get auth code: %v", err)
-			s.tokenErrHelper(w, errServerError, "", http.StatusInternalServerError)
+			errType = errServerError
+			errMsg = fmt.Sprintf("failed to get auth code: %v", err)
+			statusCode = http.StatusInternalServerError
 		} else {
-			s.tokenErrHelper(w, errInvalidGrant, "Invalid or expired code parameter.", http.StatusBadRequest)
+			errType = errInvalidGrant
+			errMsg = fmt.Sprintf("Invalid code parameter. More details: %v", err)
+			statusCode = http.StatusBadRequest
 		}
+		s.logger.Errorf(errMsg)
+		s.tokenErrHelper(w, errType, errMsg, statusCode)
 		return
+	}
+
+	if s.now().After(authCode.Expiry) {
+		s.tokenErrHelper(w, errInvalidRequest, "Expired auth code parameter", http.StatusBadRequest)
+	}
+
+	if authCode.ClientID != client.ID {
+		s.tokenErrHelper(w, errInvalidRequest,
+			fmt.Sprintf("Client ID mismatch. (Auth code client ID: %s, Request client ID: %s)",
+				authCode.ClientID, client.ID), http.StatusBadRequest)
 	}
 
 	if authCode.RedirectURI != redirectURI {
@@ -781,7 +799,7 @@ func (s *Server) withClientFromStorage(w http.ResponseWriter, r *http.Request, h
 		clientSecret = r.PostFormValue("client_secret")
 	}
 
-	s.logger.Infof("clientID: %s", clientID)
+	s.logger.Debugf("clientID: %s", clientID)
 	client, err := s.storage.GetClient(clientID)
 	if err != nil {
 		if err != storage.ErrNotFound {
@@ -1035,14 +1053,32 @@ func (s *Server) handleAuthCode(w http.ResponseWriter, r *http.Request, client s
 	}
 
 	authCode, err := s.storage.GetAuthCode(code)
-	if err != nil || s.now().After(authCode.Expiry) || authCode.ClientID != client.ID {
+	if err != nil {
+		var errType string
+		var errMsg string
+		var statusCode int
 		if err != storage.ErrNotFound {
-			s.logger.Errorf("failed to get auth code: %v", err)
-			s.tokenErrHelper(w, errServerError, "", http.StatusInternalServerError)
+			errType = errServerError
+			errMsg = fmt.Sprintf("failed to get auth code: %v", err)
+			statusCode = http.StatusInternalServerError
 		} else {
-			s.tokenErrHelper(w, errInvalidGrant, "Invalid or expired code parameter.", http.StatusBadRequest)
+			errType = errInvalidGrant
+			errMsg = fmt.Sprintf("Invalid code parameter. More details: %v", err)
+			statusCode = http.StatusBadRequest
 		}
+		s.logger.Errorf(errMsg)
+		s.tokenErrHelper(w, errType, errMsg, statusCode)
 		return
+	}
+
+	if s.now().After(authCode.Expiry) {
+		s.tokenErrHelper(w, errInvalidRequest, "Expired auth code parameter", http.StatusBadRequest)
+	}
+
+	if authCode.ClientID != client.ID {
+		s.tokenErrHelper(w, errInvalidRequest,
+			fmt.Sprintf("Client ID mismatch. (Auth code client ID: %s, Request client ID: %s)",
+				authCode.ClientID, client.ID), http.StatusBadRequest)
 	}
 
 	// RFC 7636 (PKCE)
