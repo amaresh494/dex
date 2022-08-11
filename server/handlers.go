@@ -431,7 +431,7 @@ func (s *Server) handlePasswordLogin(w http.ResponseWriter, r *http.Request) {
 		identity, ok, err := pwConn.Login(r.Context(), scopes, username, password)
 		if err != nil {
 			s.logger.Errorf("Failed to login user: %v", err)
-			s.renderError(r, w, http.StatusUnauthorized, "Login error: Username or Password is incorrect")
+			s.renderError(r, w, http.StatusUnauthorized, "Username or Password is incorrect")
 			return
 		}
 		if !ok {
