@@ -321,17 +321,6 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 		}
 	}
 
-	preventPathTraversal := func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasSuffix(r.URL.Path, "/") {
-				http.NotFound(w, r)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
-	}
-
 	r := mux.NewRouter().SkipClean(true).UseEncodedPath()
 	handle := func(p string, h http.Handler) {
 		r.Handle(path.Join(issuerURL.Path, p), instrumentHandlerCounter(p, h))
@@ -404,8 +393,8 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 		fmt.Fprintf(w, "Health check passed")
 	}))
 
-	handlePrefix("/static/", preventPathTraversal(static))
-	handlePrefix("/theme/", preventPathTraversal(theme))
+	handlePrefix("/static", static)
+	handlePrefix("/theme", theme)
 	s.mux = r
 
 	s.startKeyRotation(ctx, rotationStrategy, now)
