@@ -393,8 +393,8 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 		fmt.Fprintf(w, "Health check passed")
 	}))
 
-	handlePrefix("/static", static)
-	handlePrefix("/theme", theme)
+	handlePrefix("/static/", static)
+	handlePrefix("/theme/", theme)
 	s.mux = r
 
 	s.startKeyRotation(ctx, rotationStrategy, now)
