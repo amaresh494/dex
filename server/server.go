@@ -404,7 +404,9 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 		fmt.Fprintf(w, "Health check passed")
 	}))
 
+	handlePrefix("/static", http.NotFoundHandler())
 	handlePrefix("/static/", preventPathTraversal(static))
+	handlePrefix("/theme", http.NotFoundHandler())
 	handlePrefix("/theme/", preventPathTraversal(theme))
 	s.mux = r
 
