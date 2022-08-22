@@ -161,7 +161,7 @@ func loadWebConfig(c webConfig) (http.Handler, http.Handler, *templates, error) 
 	}
 
 	static := http.FileServer(justFilesFilesystem{fs: http.FS(staticFiles), readDirBatchSize: 2})
-	theme := http.FileServer(http.FS(themeFiles))
+	theme := http.FileServer(justFilesFilesystem{fs: http.FS(themeFiles), readDirBatchSize: 2})
 
 	templates, err := loadTemplates(c, "templates")
 	return static, theme, templates, err
